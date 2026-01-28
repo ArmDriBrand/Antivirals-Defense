@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Antivirals Defense - Safe Scale</title>
+    <title>Antivirals Defense</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -664,12 +664,6 @@ function getHeroStats(name, lvl) {
     } else {
         stats.hp = lvl * 100;
     }
-    if (name === "RunnerNinjap") {
-        const hpTable = [0, 2000, 2500, 3000, 3250, 3500, 4000, 4250, 4500, 4750, 5000];
-        stats.hp = hpTable[lvl];
-    } else {
-        stats.hp = lvl * 100;
-    }
 
     const soapDmg = lvl * 10;
     if (["Soaphie", "Doblap", "Stap", "Squap", "RunnerSoaphie", "Ninjap"].includes(name)) stats.dmg = soapDmg;
@@ -720,25 +714,39 @@ function getHeroStats(name, lvl) {
         else stats.specialRange = -1;
     }
     if (name === "Elenectrica") {
-        stats.cost = 10; stats.dmg = 10;
+        const elenectricaDmg = lvl * 10;
+        stats.dmg = elenectricaDmg;
         stats.productionChance = 0.25;
     }
     if (name === "Vampierce") {
-        stats.cost = 14; stats.dmg = 0; // Daño pasivo o aura
-    }
-    if (name === "RunnerNinjap") {
-        stats.cost = 32;
-        stats.hp = 2000; // Dureza alta
-        stats.dmg = 40;
+        stats.cost = 14; stats.dmg = 0;
     }
     if (name === "Knap") {
-        stats.cost = 7; stats.dmg = 200; stats.cooldown = 600; // 10s
+        stats.dmg = lvl * 200;
+        stats.cooldown = 600; 
     }
     if (name === "Lashra") {
-        stats.cost = 10; stats.dmg = 10; // Base dmg
+        stats.dmg = lvl * 10;
+        stats.explosiveDmg = lvl * 50;
     }
-    if (name === "Roostert") {
-        stats.cost = 14; stats.dmg = 20; stats.cooldown = 300; // 5s
+    else if (name === "Roostert") {
+        stats.dmg = lvl * 20;
+        stats.cooldown = 300;
+    }
+    else if (name === "RunnerNinjap") {
+        stats.hp = [0, 2000, 2500, 3000, 3250, 3500, 4000, 4250, 4500, 4750, 5000][lvl];
+        
+        stats.dmg = lvl * 40;     // Ataque fuerte (Columnas 1-6)
+        stats.weakDmg = lvl * 10; // Ataque débil/secundario (Columnas 7-10)
+
+        // Habilidad especial (Mejora de rango idéntica a Runner Soaphie)
+        if (lvl <= 2) stats.specialRange = 6;
+        else if (lvl <= 4) stats.specialRange = 5;
+        else if (lvl <= 6) stats.specialRange = 4;
+        else if (lvl === 7) stats.specialRange = 3;
+        else if (lvl === 8) stats.specialRange = 2;
+        else if (lvl === 9) stats.specialRange = 1;
+        else stats.specialRange = -1;
     }
     // Catapultas
     if (name.startsWith("Catapulta")) { stats.cost = 0; stats.hp = 500; }
@@ -1629,7 +1637,7 @@ class Hero {
 
             if (this.data.type === "producer") produceRay(cx, cy);
             else if (this.name === "Elenectrica") {
-                let p = new Projectile(cx + (20 * dirX), cy, 10, 6 * dirX, 0, false, "electric", this.isTraitor);
+                let p = new Projectile(cx + (20 * dirX), cy, 10, 6 * dirX, 0, true, "electric", this.isTraitor);
                 p.generateEnergy = !this.isTraitor;
                 projectiles.push(p);
             }
@@ -1744,7 +1752,7 @@ class Hero {
         let dmg = this.calculateChargeDamage();
         if (dmg <= 0 && this.name !== "Ballge") { createPopup(this.realX, this.realY, "¡Cargando!"); return; }
         if (this.name === "Spenge") {
-            let p = new Projectile(this.col*80 + 80, this.y*80 + 40, dmg, 10, 0, false, true);
+            let p = new Projectile(this.col*80 + 80, this.y*80 + 40, dmg, 10, 0, true, true);
             p.isSpengeShot = true; 
             projectiles.push(p);
             this.lastAttackTime = Date.now();

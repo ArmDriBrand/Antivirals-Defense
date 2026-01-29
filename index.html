@@ -587,6 +587,43 @@ const ENEMIES_DATA = {
     "Controlador": { hp: 250, speed: 0.15, color: "#2e7d32", damage: 20, isController: true }
 };
 
+const PROJECTILE_URLS = {
+    // Jabones (Soaphie, Doblap, Squap, RunnerSoaphie)
+    "shooter": "https://i.postimg.cc/nhVH5wJ6/Bola_de_espuma.png", 
+    "runner": "https://i.postimg.cc/nhVH5wJ6/Bola_de_espuma.png", 
+    
+    // Ikelo
+    "shooter_ice": "https://i.postimg.cc/pLV271vN/Bola_de_hielo.png",
+    
+    // Fuernando
+    "shooter_fire": "https://i.postimg.cc/fRWwFgsh/Bola_de_fuego.png",
+    
+    // Pennfume
+    "shooter_slow": "https://i.postimg.cc/T32RSHxM/Ráfaga_de_perfume.png",
+    
+    // Lypia
+    "laser": "https://i.postimg.cc/Z5YTgDmS/Láser.png",
+    
+    // Elenéctrica
+    "electric": "https://i.postimg.cc/sgfV80zz/Bola_eléctrica.png",
+    
+    // Lashra
+    "explosive_spike": "https://i.postimg.cc/FHF9qnvm/Púa_de_Lashra.png",
+    
+    // Roostert
+    "roostert_blade": "https://i.postimg.cc/t4rXHtqM/Pluma.png"
+};
+
+const projectileSprites = {};
+
+// Cargar imágenes de proyectiles
+Object.keys(PROJECTILE_URLS).forEach(type => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = PROJECTILE_URLS[type];
+    projectileSprites[type] = img;
+});
+
 const LEVELS = [
     { count: 10, rate: 800, pool: ["Normal"] },
     { count: 15, rate: 750, pool: ["Normal", "Sangre"] },
@@ -2692,20 +2729,36 @@ class Projectile {
     }
 
     draw() {
-        ctx.fillStyle = this.color;
-        ctx.beginPath();
-        
-        // Bombas un poco más grandes para que se vean mejor
-        const radius = (this.type === "foam_bomb" || this.type === "ice_bomb") ? 10 : 5;
-        
-        ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
-        ctx.fill();
+        if (projectileSprites[this.type] && projectileSprites[this.type].complete) {
+            // TAMAÑO: Aquí definimos qué tan grandes se ven (28x28 es "un poco más grande" que el original de 10px)
+            const size = 28; 
+            
+            ctx.save();
+            // Trasladar al centro del proyectil para rotarlo si fuera necesario (opcional)
+            ctx.translate(this.x, this.y);
+            
+            // Si el proyectil va a la izquierda (traidor), podemos invertir la imagen
+            if (this.vx < 0) ctx.scale(-1, 1);
+            
+            // Dibujar imagen centrada
+            ctx.drawImage(projectileSprites[this.type], -size/2, -size/2, size, size);
+            
+            ctx.restore();
+        } else {
+            // --- DIBUJO CLÁSICO (SI NO HAY IMAGEN) ---
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            // Bombas un poco más grandes para que se vean mejor
+            const radius = (this.type === "foam_bomb" || this.type === "ice_bomb") ? 10 : 6; // Subí un poco el radio base
+            ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
 
-        // Opcional: borde sutil para que resalten más
-        if (this.type === "roostert_blade" || this.type === "electric") {
-            ctx.strokeStyle = "rgba(255,255,255,0.6)";
-            ctx.lineWidth = 2;
-            ctx.stroke();
+        // Debug o efectos adicionales (opcional)
+        if (this.type === "roostert_blade") {
+             // Efecto de brillo extra para Roostert
+             ctx.shadowBlur = 5;
+             ctx.shadowColor = "gold";
         }
     }
 }

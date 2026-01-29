@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -86,11 +86,50 @@
 
         #hero-selector { position: absolute; bottom: 0; left: 0; width: 100%; height: 65px !important; background: rgba(30,30,30,0.95); display: flex; justify-content: flex-start !important; align-items: center; pointer-events: auto; border-top: 4px solid #444; overflow-x: auto !important; overflow-y: hidden; padding: 0 10px; white-space: nowrap;    }
         
-        .hero-card { width: 48px !important; height: 58px !important; min-width: 48px !important; background: #444; margin: 0 3px !important; border-radius: 6px; cursor: pointer; position: relative; text-align: center; font-size: 10px !important; border: 2px solid transparent; transition: 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        .hero-card:hover { transform: translateY(-5px); border-color: #fff; }
-        .hero-card.selected { border-color: #ffeb3b; background: #555; box-shadow: 0 0 10px #ffeb3b; }
-        .hero-card.picked { border-color: #00ff00; box-shadow: 0 0 5px #00ff00; }
-        .hero-icon { width: 30px; height: 30px; margin-bottom: 4px; border: 1px solid #fff; box-shadow: inset 0 0 5px rgba(0,0,0,0.5); }
+        .hero-card { 
+            width: 48px !important; 
+            height: 58px !important; 
+            min-width: 48px !important; 
+            /* Fondo con degradado oscuro metálico */
+            background: linear-gradient(135deg, #444 0%, #222 100%);
+            margin: 0 3px !important; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            position: relative; 
+            text-align: center; 
+            font-size: 10px !important; 
+            border: 2px solid #555; /* Borde más sutil por defecto */
+            transition: 0.2s; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5); 
+        }
+
+        .hero-card:hover { 
+            transform: translateY(-5px); 
+            border-color: #fff; 
+            background: linear-gradient(135deg, #555 0%, #333 100%); /* Ligeramente más claro al pasar mouse */
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); /* Resplandor */
+        }
+
+        .hero-card.selected { 
+            border-color: #ffeb3b; 
+            background: linear-gradient(135deg, #666 0%, #444 100%);
+            box-shadow: 0 0 15px #ffeb3b; 
+        }
+
+        /* Fondo para el icono interno del héroe */
+        .hero-icon { 
+            width: 36px; 
+            height: 36px; 
+            margin-bottom: 2px; 
+            border: 1px solid rgba(255,255,255,0.5); 
+            border-radius: 4px;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.5); 
+            /* El background-image se inyecta desde JS */
+        }
         
         .cooldown-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); color: white; font-size: 24px; font-weight: bold; display: none; justify-content: center; align-items: center; border-radius: 4px; z-index: 5; backdrop-filter: blur(2px); }
         
@@ -283,6 +322,34 @@ const HEROES_INFO = {
 };
 
 const heroSprites = {};
+
+const ScenaryURLs = {
+    range1: "https://i.postimg.cc/MpQqv6gZ/Houston_Escenario.jpg",
+    range2: "https://i.postimg.cc/2SZrVkg8/San_Francisco_Escenario.jpg",
+    range3: "https://i.postimg.cc/fR9DJz1z/Tijuana_Escenario.jpg",
+    range4: "https://i.postimg.cc/rwrMKV7w/Tokio_Escenario.jpg",
+    range5: "https://i.postimg.cc/wBYHJKdK/Budapest_Escenario.jpg"
+};
+
+// Variable para guardar la imagen actual cargada
+let currentBgImage = new Image();
+
+function updateBackground(level) {
+    let url = "";
+    // Lógica de rangos
+    if (level <= 10) url = ScenaryURLs.range1;
+    else if (level <= 18) url = ScenaryURLs.range2;
+    else if (level <= 36) url = ScenaryURLs.range3;
+    else if (level <= 54) url = ScenaryURLs.range4;
+    else url = ScenaryURLs.range5;
+
+    // Solo recargar si la URL cambia
+    if (currentBgImage.src !== url) {
+        currentBgImage.src = url;
+        currentBgImage.crossOrigin = "anonymous";
+    }
+}
+
 const spriteUrls = {
     "Soaphie": "https://i.postimg.cc/RVBPcB5b/Soaphie.png",
     "Reactor": "https://i.postimg.cc/KvD0fHx9/Reactor.png",
@@ -309,7 +376,7 @@ const spriteUrls = {
     "CatapultaHielo": "https://i.postimg.cc/1tqTzt0J/Catapulta_de_hielo.png",
 };
 
-const ballgeRollUrl = "https://i.postimg.cc/HnsYWGJ1/Ballge-rolling.png"; 
+const ballgeRollUrl = "https://i.postimg.cc/MpQqv6gZ/Houston_Escenario.jpg"; 
 const ballgeRollSprite = new Image();
 ballgeRollSprite.crossOrigin = "anonymous";
 ballgeRollSprite.src = ballgeRollUrl;
@@ -321,6 +388,104 @@ Object.keys(spriteUrls).forEach(name => {
     heroSprites[name] = img;
 });
 
+const enemyFrames = {}; // Aquí se guardarán las imágenes ya cargadas
+
+// PEGA TUS ENLACES AQUÍ. Añade tantos frames como tengas.
+const ENEMY_ANIMATIONS_URLS = {
+    "Normal": [
+        "https://i.postimg.cc/HxjyGCc2/Germen_normal.png",
+        "https://i.postimg.cc/k4Dbrd6w/Germen_normal_caminando_1.png", 
+        "https://i.postimg.cc/4dn9CT7B/Germen_normal_caminando_2.png",
+        "https://i.postimg.cc/k4Dbrd6w/Germen_normal_caminando_1.png",
+        "https://i.postimg.cc/HxjyGCc2/Germen_normal.png",
+        "https://i.postimg.cc/ZR0dkhBw/Germen_normal_caminando_3.png",
+        "https://i.postimg.cc/3RWvMH4S/Germen_normal_caminando_4.png",
+        "https://i.postimg.cc/ZR0dkhBM/Germen_normal_caminando_5.png",
+        "https://i.postimg.cc/3RWvMH4S/Germen_normal_caminando_4.png",
+        "https://i.postimg.cc/ZR0dkhBw/Germen_normal_caminando_3.png",
+    ],
+    "Sangre": [
+        "https://i.postimg.cc/HLSrtsWy/Germen_ensangrentado.png",
+        "https://i.postimg.cc/JhTsQ47J/Germen_ensangrentado_caminando_1.png", 
+        "https://i.postimg.cc/CKvR4LMf/Germen_ensangrentado_caminando_2.png",
+        "https://i.postimg.cc/JhTsQ47J/Germen_ensangrentado_caminando_1.png",
+        "https://i.postimg.cc/HLSrtsWy/Germen_ensangrentado.png",
+        "https://i.postimg.cc/ZqfWLKYN/Germen_ensangrentado_caminando_3.png",
+        "https://i.postimg.cc/W49d7bpw/Germen_ensangrentado_caminando_4.png",
+        "https://i.postimg.cc/vmP4vH8v/Germen_ensangrentado_caminando_5.png",
+        "https://i.postimg.cc/W49d7bpw/Germen_ensangrentado_caminando_4.png",
+        "https://i.postimg.cc/ZqfWLKYN/Germen_ensangrentado_caminando_3.png",
+    ],
+    "MasSangre": [
+        "https://i.postimg.cc/g22dHyw0/Germen_aún_más_ensangrentado.png",
+        "https://i.postimg.cc/wjjHQ5tj/Germen_aún_más_ensangrentado_caminando_1.png", 
+        "https://i.postimg.cc/P55hQbLJ/Germen_aún_más_ensangrentado_caminando_2.png",
+        "https://i.postimg.cc/wjjHQ5tj/Germen_aún_más_ensangrentado_caminando_1.png",
+        "https://i.postimg.cc/g22dHyw0/Germen_aún_más_ensangrentado.png",
+        "https://i.postimg.cc/2SSm7dq6/Germen_aún_más_ensangrentado_caminando_3.png",
+        "https://i.postimg.cc/Bn73Y8D4/Germen_aún_más_ensangrentado_caminando_4.png",
+        "https://i.postimg.cc/VkZwGSM1/Germen_aún_más_ensangrentado_caminando_5.png",
+        "https://i.postimg.cc/Bn73Y8D4/Germen_aún_más_ensangrentado_caminando_4.png",
+        "https://i.postimg.cc/2SSm7dq6/Germen_aún_más_ensangrentado_caminando_3.png",
+    ],
+    "Acuatico": [
+        "https://i.postimg.cc/2y3vRLy7/Germen_acuático.png",
+        "https://i.postimg.cc/WzKZ2pqg/Germen_acuático_caminando_1.png", 
+        "https://i.postimg.cc/7hczxPJg/Germen_acuático_caminando_2.png",
+        "https://i.postimg.cc/WzKZ2pqg/Germen_acuático_caminando_1.png",
+        "https://i.postimg.cc/2y3vRLy7/Germen_acuático.png",
+        "https://i.postimg.cc/qqYKkB6s/Germen_acuático_caminando_3.png",
+        "https://i.postimg.cc/zvMhJDHS/Germen_acuático_caminando_4.png",
+        "https://i.postimg.cc/MH4BWZfm/Germen_acuático_caminando_5.png",
+        "https://i.postimg.cc/zvMhJDHS/Germen_acuático_caminando_4.png",
+        "https://i.postimg.cc/qqYKkB6s/Germen_acuático_caminando_3.png",
+    ],
+    "Fuego": [
+        "https://i.postimg.cc/L57PH4gx/Germen_de_fuego.png",
+        "https://i.postimg.cc/90S9WXwg/Germen_de_fuego_caminando_1.png", 
+        "https://i.postimg.cc/SR59yQYt/Germen_de_fuego_caminando_2.png",
+        "https://i.postimg.cc/90S9WXwg/Germen_de_fuego_caminando_1.png",
+        "https://i.postimg.cc/L57PH4gx/Germen_de_fuego.png",
+        "https://i.postimg.cc/gj5hYcLT/Germen_de_fuego_caminando_3.png",
+        "https://i.postimg.cc/zvMhJDH6/Germen_de_fuego_caminando_4.png",
+        "https://i.postimg.cc/C5t8FMfT/Germen_de_fuego_caminando_5.png",
+        "https://i.postimg.cc/zvMhJDH6/Germen_de_fuego_caminando_4.png",
+        "https://i.postimg.cc/gj5hYcLT/Germen_de_fuego_caminando_3.png",
+    ],
+    "Hielo": [
+        "https://i.postimg.cc/Rh8tMCnz/Germen_de_hielo.png",
+        "https://i.postimg.cc/ZYDpPHsY/Germen_de_hielo_caminando_1.png", 
+        "https://i.postimg.cc/PfFYbyV5/Germen_de_hielo_caminando_2.png",
+        "https://i.postimg.cc/ZYDpPHsY/Germen_de_hielo_caminando_1.png",
+        "https://i.postimg.cc/Rh8tMCnz/Germen_de_hielo.png",
+        "https://i.postimg.cc/661nVcbQ/Germen_de_hielo_caminando_3.png",
+        "https://i.postimg.cc/v8Sf7h2T/Germen_de_hielo_caminando_4.png",
+        "https://i.postimg.cc/1RYw0B74/Germen_de_hielo_caminando_5.png",
+        "https://i.postimg.cc/v8Sf7h2T/Germen_de_hielo_caminando_4.png",
+        "https://i.postimg.cc/661nVcbQ/Germen_de_hielo_caminando_3.png",
+    ],
+    "Succionador": [
+        "https://i.postimg.cc/L40LkDQn/Germen_succionador.png",
+        "https://i.postimg.cc/59kL5gKX/Germen_succionador_caminando_1.png", 
+        "https://i.postimg.cc/DfYLQ6pW/Germen_succionador_caminando_2.png",
+        "https://i.postimg.cc/59kL5gKX/Germen_succionador_caminando_1.png",
+        "https://i.postimg.cc/L40LkDQn/Germen_succionador.png",
+        "https://i.postimg.cc/J7dZ3xYD/Germen_succionador_caminando_3.png",
+        "https://i.postimg.cc/G3SGPKgT/Germen_succionador_caminando_4.png",
+        "https://i.postimg.cc/ZYDpPHsy/Germen_succionador_caminando_5.png",
+        "https://i.postimg.cc/G3SGPKgT/Germen_succionador_caminando_4.png",
+        "https://i.postimg.cc/J7dZ3xYD/Germen_succionador_caminando_3.png",
+    ],
+}
+Object.keys(ENEMY_ANIMATIONS_URLS).forEach(type => {
+    enemyFrames[type] = []; // Crear array para este tipo
+    ENEMY_ANIMATIONS_URLS[type].forEach(url => {
+        const img = new Image();
+        img.src = url;
+        img.crossOrigin = "anonymous";
+        enemyFrames[type].push(img);
+    });
+});
 const ENEMIES_DATA = {
     "Normal": { hp: 100, speed: 0.15, color: "#333", damage: 20 },
     "Sangre": { hp: 200, speed: 0.15, color: "#800000", damage: 20 },
@@ -1131,6 +1296,7 @@ function continueGame() { prepareLevel(Math.min(gameState.maxLevel, 86)); }
 
 /** * INICIO DE NIVEL */
 function startLevel(lvlData) {
+    updateBackground(gameState.level);
     gameState.gameOver = false;
     gameState.enemiesToSpawn = lvlData.count;
     gameState.totalEnemies = lvlData.count;
@@ -1401,10 +1567,32 @@ function checkUnlocks(lvl) {
 
 function createCardHTML(name, cost, level) {
     let hInfo = HEROES_INFO[name];
+    
+    // Obtenemos la URL del héroe (ya definida en tu código como spriteUrls)
+    let imgUrl = spriteUrls[name] || ""; 
+
     let btn = document.createElement('div');
     btn.className = 'hero-card';
-    btn.innerHTML = `<div class="hero-icon" style="background:${hInfo.color}"></div>${name}<span style="font-size:8px">Lvl ${level}</span>`;
-    if(cost !== undefined) btn.innerHTML += `<span style="color:cyan">${cost}</span>`;
+    
+    // Aquí está el truco: Ponemos la imagen como background-image del icono
+    // y añadimos un degradado suave para que se lea el texto si la imagen es clara
+    let iconHtml = `
+        <div class="hero-icon" style="
+            background-color: ${hInfo.color}; 
+            background-image: url('${imgUrl}'); 
+            background-size: cover; 
+            background-position: center;
+        "></div>
+    `;
+
+    btn.innerHTML = `${iconHtml}
+                     <div style="z-index:2; text-shadow: 1px 1px 2px black;">${name}</div>
+                     <span style="font-size:9px; color:#ddd; z-index:2">Lvl ${level}</span>`;
+    
+    if(cost !== undefined) {
+        btn.innerHTML += `<span style="color:cyan; font-weight:bold; font-size:11px; z-index:2; margin-top:2px;">${cost}⚡</span>`;
+    }
+    
     return btn;
 }
 
@@ -2284,12 +2472,36 @@ draw() {
         ctx.fillRect(this.x, this.y - 8, 60 * (this.hp / this.maxHp), 5);
         return;
     }
-    ctx.fillStyle = this.data.color;
-    ctx.beginPath();
-    ctx.arc(this.x+30, this.y+30, 25, 0, Math.PI*2); ctx.fill();
-    if (this.speedMultiplier < 1) { ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.stroke(); }
-        ctx.fillStyle = "yellow"; ctx.fillRect(this.x+10, this.y-5, 40*(Math.max(0,this.hp)/this.maxHp), 4);
+    // 2. DIBUJO DE SPRITES ANIMADOS
+    const framesList = enemyFrames[this.type];
+    
+    // Verificar si hay frames cargados para este tipo
+    if (framesList && framesList.length > 0) {
+        // VELOCIDAD DE ANIMACIÓN:
+        // gameState.levelFrame aumenta 60 veces por seg.
+        // Dividimos por 10 para cambiar de frame cada 10 ticks (6 veces por seg).
+        // Ajusta el '10' si quieres que corran más rápido o lento.
+        const speedFactor = 10; 
+        const frameIndex = Math.floor(gameState.levelFrame / speedFactor) % framesList.length;
+        const currentImg = framesList[frameIndex];
+
+        if (currentImg.complete) {
+             // Dibujar imagen centrada (60x60 px)
+            ctx.drawImage(currentImg, this.x, this.y, 60, 60);
+        }
+    } else {
+        // FALLBACK: Si no hay imágenes, dibuja la bola de color original
+        ctx.fillStyle = this.data.color;
+        ctx.beginPath();
+        ctx.arc(this.x + 30, this.y + 30, 25, 0, Math.PI*2);
+        ctx.fill();
+        if (this.speedMultiplier < 1) { ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.stroke(); }
     }
+
+    // Barra de vida
+    ctx.fillStyle = "yellow";
+    ctx.fillRect(this.x + 10, this.y - 5, 40 * (Math.max(0, this.hp) / this.maxHp), 4);
+}
 }
 
 class Projectile {
@@ -2698,10 +2910,19 @@ function checkBossHit(p) {
 
 /** * BUCLE PRINCIPAL */
 function gameLoop() {
+    ctx.clearRect(0,0,800,400); // Limpieza base
+
+    // DIBUJAR FONDO
+    if (currentBgImage.complete && currentBgImage.naturalWidth > 0) {
+        ctx.drawImage(currentBgImage, 0, 0, INTERNAL_WIDTH, INTERNAL_HEIGHT);
+    } else {
+        ctx.fillStyle = "#222"; // Color de respaldo mientras carga
+        ctx.fillRect(0, 0, INTERNAL_WIDTH, INTERNAL_HEIGHT);
+    }
     if (gameState.gameOver) return;
     updateHeroCooldowns();
 
-    ctx.clearRect(0,0,800,400);
+    // ctx.clearRect(0,0,800,400);
     let isBossLevel = typeof gameState.level === 'number' && [10, 18, 36, 54, 86].includes(gameState.level);
     gameState.levelFrame++;
     

@@ -2714,36 +2714,31 @@ class Projectile {
     }
 
     draw() {
-        if (projectileSprites[this.type] && projectileSprites[this.type].complete) {
-            // TAMAÑO: Aquí definimos qué tan grandes se ven (28x28 es "un poco más grande" que el original de 10px)
-            const size = 28; 
+        // Buscamos si existe una textura para este tipo de proyectil
+        const img = projectileSprites[this.type];
+        
+        if (img && img.complete && img.naturalWidth !== 0) {
+            // --- DIBUJAR TEXTURA ---
+            // TAMAÑO: 25 es un poco más grande que el original (puedes subirlo a 30 si quieres más)
+            const size = 25; 
             
             ctx.save();
-            // Trasladar al centro del proyectil para rotarlo si fuera necesario (opcional)
             ctx.translate(this.x, this.y);
             
-            // Si el proyectil va a la izquierda (traidor), podemos invertir la imagen
+            // Si el proyectil va a la izquierda (traidor), invertimos la imagen
             if (this.vx < 0) ctx.scale(-1, 1);
             
-            // Dibujar imagen centrada
-            ctx.drawImage(projectileSprites[this.type], -size/2, -size/2, size, size);
-            
+            // Dibujamos la imagen centrada
+            ctx.drawImage(img, -size/2, -size/2, size, size);
             ctx.restore();
         } else {
-            // --- DIBUJO CLÁSICO (SI NO HAY IMAGEN) ---
+            // --- RESPALDO: DIBUJO CLÁSICO (Si la imagen no carga) ---
             ctx.fillStyle = this.color;
             ctx.beginPath();
-            // Bombas un poco más grandes para que se vean mejor
-            const radius = (this.type === "foam_bomb" || this.type === "ice_bomb") ? 10 : 6; // Subí un poco el radio base
+            // Bombas (Catapulta) un poco más grandes, proyectiles normales radio 8 (antes era 5)
+            const radius = (this.type === "foam_bomb" || this.type === "ice_bomb") ? 12 : 8; 
             ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
             ctx.fill();
-        }
-
-        // Debug o efectos adicionales (opcional)
-        if (this.type === "roostert_blade") {
-             // Efecto de brillo extra para Roostert
-             ctx.shadowBlur = 5;
-             ctx.shadowColor = "gold";
         }
     }
 }

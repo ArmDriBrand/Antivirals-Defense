@@ -1955,6 +1955,12 @@ class Hero {
                 // Nota: pasamos this.isTraitor al final para que si está controlado ataque a aliados
                 angles.forEach(a => projectiles.push(new Projectile(cx, cy, this.stats.dmg, a.vx, a.vy, false, "normal", this.isTraitor)));
             }
+            else if (this.name === "Ninjap") {
+                let angles = [];
+                if (this.ninjaMode === 'cross') angles = [{vx:6,vy:0}, {vx:-6,vy:0}, {vx:0,vy:6}, {vx:0,vy:-6}];
+                else angles = [{vx:5,vy:5}, {vx:-5,vy:5}, {vx:5,vy:-5}, {vx:-5,vy:-5}];
+                angles.forEach(a => projectiles.push(new Projectile(cx, cy, this.stats.dmg, a.vx, a.vy, false)));
+            }
             else if (this.data.type.startsWith("shooter") || this.name === "Lypia" || this.name === "Roostert" || this.name === "Lashra") {
                 let pType = "normal";
                 let pIsPiercing = false
@@ -1966,12 +1972,12 @@ class Hero {
                 if (this.name === "Lashra") {
                     pType = "explosive_spike";
                     pIsPiercing = true; // ¡Ahora es perforante!
-                }
-                if (this.name === "Roostert") { 
-                    pType = "roostert_blade"; 
-                    pIsPiercing = true; // La cuchilla es perforante por defecto
-                }
-                projectiles.push(new Projectile(cx, cy, this.stats.dmg, 6 * dirX, 0, (pIsPiercing || pType === "perfume"), pType, this.isTraitor));
+            }
+            if (this.name === "Roostert") { 
+                pType = "roostert_blade"; 
+                pIsPiercing = true; // La cuchilla es perforante por defecto
+            }
+            projectiles.push(new Projectile(cx, cy, this.stats.dmg, 6 * dirX, 0, (pIsPiercing || pType === "perfume"), pType, this.isTraitor));
             }
 
             if (this.timer < this.stats.cooldown) {

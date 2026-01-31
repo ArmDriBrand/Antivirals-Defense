@@ -2868,6 +2868,8 @@ function handleInput(clientX, clientY) {
     
     if (col < 0 || col >= 10 || row < 0 || row >= 5) return;
 
+    let currentHeroCount = heroes.reduce((acc, h) => acc + 1 + (h.carriedHero ? 1 : 0), 0);
+
     // --- NUEVO: CHEQUEO DE MÁQUINA ---
     // Buscar si hay una máquina en esa posición
     let machineHere = enemies.find(e => e.isGrowMachine && e.row === row && Math.floor(e.x / 80) === col);
@@ -2916,6 +2918,13 @@ function handleInput(clientX, clientY) {
         }
         // Lógica especial de Knap (Apilar héroe encima)
         else if (clickedHero.name === "Knap" && !clickedHero.carriedHero && gameState.selectedHero && gameState.selectedHero !== "Knap") {
+             // VALIDACIÓN DEL LÍMITE AL INTENTAR MONTAR
+             if ((lvlData.constraint === "maxHeroes20" && currentHeroCount >= 20) ||
+                 (lvlData.constraint === "maxHeroes40" && currentHeroCount >= 40)) {
+                createPopup(col*80, row*80, "¡LIMITE!", "red");
+                return;
+             }
+
              const now = Date.now();
              const cdEnd = gameState.heroCurrentReloads[gameState.selectedHero] || 0;
              if (now < cdEnd) {
@@ -2947,47 +2956,43 @@ function handleInput(clientX, clientY) {
              }
         }
         if (col < (gameState.level >= 10 ? 9 : 10)) {
-            // Restricciones de nivel
-            if (lvlData.constraint === "maxHeroes20" && heroes.length >= 20) {
+            if (lvlData.constraint === "maxHeroes20" && currentHeroCount >= 20) {
                 createPopup(col*80, row*80, "¡MAX 20!");
                 return;
             }
-        if (col < (gameState.level >= 10 ? 9 : 10)) {
-        // Restricciones de nivel
-        if (lvlData.constraint === "maxHeroes40" && heroes.length >= 20) {
-            createPopup(col*80, row*80, "¡MAX 40!");
+            if (lvlData.constraint === "maxHeroes40" && currentHeroCount >= 40) {
+                createPopup(col*80, row*80, "¡MAX 40!");
+                return;
+            }
+        }
+        
+        const now = Date.now();
+        const cdEnd = gameState.heroCurrentReloads[gameState.selectedHero] || 0;
+        if (now < cdEnd) {
+            createPopup(col*80, row*80, "¡Recargando!", "gray");
             return;
         }
-    }
-            
-            const now = Date.now();
-            const cdEnd = gameState.heroCurrentReloads[gameState.selectedHero] || 0;
-            if (now < cdEnd) {
-                createPopup(col*80, row*80, "¡Recargando!", "gray");
-                return;
-            }
 
-            let lvl = gameState.inventory[gameState.selectedHero].level;
-            let hStats = getHeroStats(gameState.selectedHero, lvl);
-            
-            if (lvlData.constraint === "spendMax40" && (gameState.raysSpent + hStats.cost > 40)) {
-                createPopup(col*80, row*80, "¡Limite Gasto!");
-                return;
-            }
-            if (lvlData.constraint === "spendMax150" && (gameState.raysSpent + hStats.cost > 150)) {
-                createPopup(col*80, row*80, "¡Limite Gasto!");
-                return;
-            }
+        let lvl = gameState.inventory[gameState.selectedHero].level;
+        let hStats = getHeroStats(gameState.selectedHero, lvl);
+        
+        if (lvlData.constraint === "spendMax40" && (gameState.raysSpent + hStats.cost > 40)) {
+            createPopup(col*80, row*80, "¡Limite Gasto!");
+            return;
+        }
+        if (lvlData.constraint === "spendMax150" && (gameState.raysSpent + hStats.cost > 150)) {
+            createPopup(col*80, row*80, "¡Limite Gasto!");
+            return;
+        }
 
-            // --- LÓGICA DE COLOCACIÓN CORREGIDA ---
-            if (gameState.rayos >= hStats.cost) {
-                heroes.push(new Hero(col, row, gameState.selectedHero));
-                gameState.rayos -= hStats.cost;
-                gameState.raysSpent += hStats.cost;
-                const reloadSecs = HEROES_INFO[gameState.selectedHero].reload || 5;
-                gameState.heroCurrentReloads[gameState.selectedHero] = now + (reloadSecs * 1000);
-                updateUI();
-            }
+        // --- LÓGICA DE COLOCACIÓN CORREGIDA ---
+        if (gameState.rayos >= hStats.cost) {
+            heroes.push(new Hero(col, row, gameState.selectedHero));
+            gameState.rayos -= hStats.cost;
+            gameState.raysSpent += hStats.cost;
+            const reloadSecs = HEROES_INFO[gameState.selectedHero].reload || 5;
+            gameState.heroCurrentReloads[gameState.selectedHero] = now + (reloadSecs * 1000);
+            updateUI();
         }
     }
 }
@@ -3088,7 +3093,6 @@ function gameLoop() {
 
     if (isBossLevel && gameState.levelFrame >= 1200) {  
         gameState.machines.forEach(m => {
-            if (m.hp <= 0) return;
             if (m.hp > 0) {
                 m.spawnTimer++;
                 if (m.spawnTimer >= 1100) {  
@@ -3341,6 +3345,7 @@ function updateUI() {
     const limitDisplay = document.getElementById('limit-obj-display');
     objDisplay.style.display = "none";
     limitDisplay.style.display = "none";
+    let currentHeroCount = heroes.reduce((acc, h) => acc + 1 + (h.carriedHero ? 1 : 0), 0);
     if (gameState.level === 13) {
         objDisplay.style.display = "block";
         objDisplay.innerText = `Prod: ${gameState.producedRaysCount}/50`;
@@ -3363,12 +3368,12 @@ function updateUI() {
     } else if (gameState.level === 23) {
         limitDisplay.style.display = "block";
         limitDisplay.innerText = `Gasto: ${gameState.raysSpent}/150`;
-    } else if (gameState.level === 24 || gameState.level === 40 || gameState.level === 69) {
+    } else if (gameState.level === 24 || gameState.level === 40 || gameState.level === 68) {
         limitDisplay.style.display = "block";
-        limitDisplay.innerText = `Héroes: ${heroes.length}/20`;
+        limitDisplay.innerText = `Héroes: ${currentHeroCount}/20`;
     } else if (gameState.level === 69) {
         limitDisplay.style.display = "block";
-        limitDisplay.innerText = `Héroes: ${heroes.length}/20`;
+        limitDisplay.innerText = `Héroes: ${currentHeroCount}/40`;
     }
     let enemyText = "";
     if (typeof gameState.level === 'number' && [10, 18, 36, 54, 86].includes(gameState.level)) enemyText = "Jefe";

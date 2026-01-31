@@ -2370,54 +2370,66 @@ class Enemy {
         else if (this.slowTimer > 0) { mult = 0.5; this.slowTimer--; }
         else if (this.perfumeTimer > 0) { mult = 0.5; this.perfumeTimer--; }
         this.speedMultiplier = mult;
+        if (this.data.isTeleporter) {
+            this.teleportTimer++;
+            if (this.teleportTimer >= 600) { 
+                this.teleportTimer = 0;
+                // AGREGADO: (|| 0) para evitar errores con Catapultas u objetos sin coste
+                let targets = [...heroes].sort((a,b) => ((b.stats.cost || 0) - (a.stats.cost || 0)) || (b.col - a.col));
+                if (targets.length > 0) {
+                    let target = targets[0];
+                    createPopup(target.realX, target.realY, "¡Teleport!", "red");
+                    heroDies(target, false);
+                    this.x = 8 * 80 + 10;
+                }
+            }
+        }
 
         if (this.frozenTimer > 0) { this.frozenTimer--; return; }
+
+        // --- GERMEN ACUÁTICO (Corregido: isPiercing = false) ---
         if (this.data.isAquatic) {
             this.specialTimer++;
             if (this.specialTimer >= 600) {
-                // Actualizado: Se pasan todos los argumentos hasta llegar al ultimo 'true' (isEnemy)
-                // (x, y, dmg, vx, vy, isPiercing, type, fromTraitor, isEnemy)
-                projectiles.push(new Projectile(this.x, this.y + 40, 50, -5, 0, true, "normal", false, true));
+                // CAMBIO: El sexto argumento ahora es FALSE (antes true) para que no perfore
+                projectiles.push(new Projectile(this.x, this.y + 40, 50, -5, 0, false, "normal", false, true));
                 this.specialTimer = 0;
             }
         }
+
+        // --- GERMEN SUCCIONADOR (Corregido: Dirección < ) ---
         if (this.data.isSucker) {
             this.specialTimer++;
             
-            // Cada 10 segundos (600 frames) intenta succionar o activar
             if (this.specialTimer >= 600) {
                 let targetHero = null;
                 
-                // Buscamos el héroe más cercano en la misma fila
-                // Priorizamos los que están a la derecha del enemigo (frente a él)
                 heroes.forEach(h => {
-                    if (h.y === this.row && (h.col * 80) > this.x) {
-                        if (!targetHero || h.col < targetHero.col) {
+                    // CAMBIO: Ahora busca héroes con X MENOR a la del enemigo (a su izquierda)
+                    if (h.y === this.row && (h.col * 80) < this.x) {
+                        // Buscamos el más cercano al enemigo (la columna más alta posible)
+                        if (!targetHero || h.col > targetHero.col) {
                             targetHero = h;
                         }
                     }
                 });
 
                 if (targetHero) {
-                    // CASO A: Es una Catapulta
                     if (targetHero.isCatapult) {
-                        targetHero.activateRolling(); // La catapulta sale disparada
+                        targetHero.activateRolling();
                         createPopup(this.x, this.y, "¡ACTIVACIÓN!", "purple");
                     } 
-                    // CASO B: Es un Héroe Normal
                     else {
-                        // Succión: Lo mueve una casilla hacia la derecha (hacia el enemigo/fuera)
                         if (targetHero.col < 9) {
                             targetHero.col++;
-                            targetHero.realX = targetHero.col * 80 + 10; // Actualizamos posición visual
+                            targetHero.realX = targetHero.col * 80 + 10;
                             createPopup(targetHero.realX, targetHero.realY, "¡SUCCIÓN!", "magenta");
                         } else {
-                            // Si ya está al borde, el héroe se pierde
                             heroDies(targetHero);
                             createPopup(this.x, this.y, "¡DEVORADO!", "red");
                         }
                     }
-                    this.specialTimer = 0; // Reiniciar cooldown tras éxito
+                    this.specialTimer = 0;
                 }
             }
         }
@@ -2627,6 +2639,7 @@ class Projectile {
         this.isPiercing = isPiercing;
         this.type = type;
         this.fromTraitor = fromTraitor;
+        this.isEnemy = isEnemy;
         this.isDead = false;
         this.hitTargets = new Set();
         this.hitBoss = false;

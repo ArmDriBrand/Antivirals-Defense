@@ -1961,6 +1961,28 @@ class Hero {
                 else angles = [{vx:5,vy:5}, {vx:-5,vy:5}, {vx:5,vy:-5}, {vx:-5,vy:-5}];
                 angles.forEach(a => projectiles.push(new Projectile(cx, cy, this.stats.dmg, a.vx, a.vy, false)));
             }
+            else if (this.name === "RunnerSoaphie") {
+            // Calculamos si está en rango cuerpo a cuerpo o distancia
+            let isMelee = false;
+            if (this.stats.specialRange === -1) isMelee = true; // Nivel alto, siempre melee
+            else if (this.col >= this.stats.specialRange) isMelee = true; // Se pasó de la columna límite
+
+            if (!isMelee) {
+                // Disparo a distancia (recto)
+                projectiles.push(new Projectile(cx, cy, this.stats.dmg, 6 * dirX, 0, false, "normal", this.isTraitor));
+            } else {
+                // Ataque cuerpo a cuerpo (ráfaga multidireccional)
+                const angles = [
+                    {vx:6, vy:0}, 
+                    {vx:0, vy:6}, {vx:0, vy:-6},
+                    {vx:5, vy:5}, {vx:5, vy:-5}, 
+                    {vx:-5, vy:0}
+                ];
+                angles.forEach(a => {
+                    // Multiplicamos vx por dirX para que si es traidora dispare al revés
+                    projectiles.push(new Projectile(cx, cy, this.stats.dmg, a.vx * dirX, a.vy, false, "normal", this.isTraitor));
+                });
+            }
             else if (this.data.type.startsWith("shooter") || this.name === "Lypia" || this.name === "Roostert" || this.name === "Lashra") {
                 let pType = "normal";
                 let pIsPiercing = false

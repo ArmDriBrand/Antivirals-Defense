@@ -17,6 +17,8 @@
             display: flex;
             justify-content: center;
             align-items: flex-start;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
         #game-container { 
@@ -69,7 +71,9 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(50px, 1fr)); gap: 8px; padding: 20px; 
             max-width: 90%; margin: 0 auto;
-            max-height: 60vh; overflow-y: auto;
+            min-height: 200px;
+            max-height: 60vh;
+            pointer-events: auto; overflow-y: auto;
             background: rgba(255,255,255,0.05);
             border-radius: 8px;
         }
@@ -185,8 +189,11 @@
             <button class="btn btn-purple" onclick="openEncyclopedia()">📖 Enciclopedia</button>
             <button class="btn btn-blue" id="upgrades-btn" onclick="openUpgrades()">🛒 Tienda / Mejoras</button>
             <br>
-            <button class="btn btn-red" style="font-size: 12px; padding: 8px;" onclick="resetProgress()">⚠ Borrar Progreso</button>
-        </div>
+            <div id="ad-buttons-container" style="margin-top: 10px;">
+                <button class="btn btn-gold" id="ad-coins-btn" onclick="watchAdForCoins()">📺 +500 💰 (3/3)</button>
+                <button class="btn btn-orange" id="ad-bills-btn" onclick="watchAdForBills()">📺 +3 💵 (3/3)</button>
+            </div>
+     </div>
 
         <div id="level-grid"></div>
     </div>
@@ -295,27 +302,27 @@ const HERO_NAMES = [
 ];
 
 const HEROES_INFO = {
-    "Soaphie": { color: "#ff69b4", type: "shooter", desc: "Dispara burbujas básicas.", reload: 5 },
-    "Reactor": { color: "#00bfff", type: "producer", desc: "Genera rayos vitalizadores.", reload: 5 },
-    "Doblap": { color: "#fa8072", type: "shooter", desc: "Dispara dos burbujas.", reload: 5 },
-    "Stap": { color: "#8b0000", type: "8-way", desc: "Dispara en 8 direcciones.", reload: 5 },
-    "Squap": { color: "#ff1493", type: "shooter", desc: "Disparos muy rápidos.", reload: 5 },
-    "Spenge": { color: "#ffff00", type: "charge", desc: "Carga explosión. Daño masivo.", reload: 20 },
-    "ReactorDoble": { color: "#00ced1", type: "producer", desc: "Genera rayos más rápido.", reload: 5 },
-    "Ballge": { color: "#ffa500", type: "ball", desc: "Se lanza como bola de boliche.", reload: 5 },
-    "Ikelo": { color: "#a5f2f3", type: "shooter_ice", desc: "Congela enemigos. Daño extra a Fuego.", reload: 5 },
-    "Fuernando": { color: "#ff4500", type: "shooter_fire", desc: "Quema y derrite hielo.", reload: 5 },
-    "Pennfume": { color: "#d8bfd8", type: "shooter_slow", desc: "Perfume que ralentiza (perforante).", reload: 5 },
-    "Ninjap": { color: "#333333", type: "ninja", desc: "Alterna disparo en cruz o X. Alta vida.", reload: 10 },
-    "RunnerSoaphie": { color: "#ff1493", type: "runner", desc: "Corre y golpea o dispara de lejos.", reload: 5 },
-    "Pastual": { color: "#88cc88", type: "passive_slow", desc: "Ralentiza a quien lo pisa.", reload: 20 },
-    "Lypia": { color: "#aa00ff", type: "laser", desc: "Dispara láser perforante.", reload: 5 },
-    "Elenectrica": { color: "#ffff33", type: "electric", desc: "Bolas perforantes. 25% de dar Sol al impactar.", reload: 5 },
-    "Vampierce": { color: "#800080", type: "aura", desc: "Cura sangre a gérmenes cercanos. Inmune a control.", reload: 5 },
-    "RunnerNinjap": { color: "#111", type: "ninja_switch", desc: "C1-6: Disparo Fuerte. C7-10: Disparo 8 dir.", reload: 5 },
-    "Knap": { color: "#8d6e63", type: "melee_knock", desc: "Empuja enemigos. Puedes poner otro héroe encima.", reload: 10 },
-    "Lashra": { color: "#e91e63", type: "explosive_spike", desc: "Púas con prob. de explosión.", reload: 5 },
-    "Roostert": { color: "#d35400", type: "roostert_blade", desc: "Instakill a la mayoría de enemigos.", reload: 5 },
+    "Soaphie": { color: "#ff69b4", type: "shooter", desc: "Dispara una burbuja cada dos segundos.", reload: 5 },
+    "Reactor": { color: "#ff69b4", type: "producer", desc: "Produce rayos vitalizadores.", reload: 5 },
+    "Doblap": { color: "#ff69b4", type: "shooter", desc: "Dispara una burbuja cada segundo.", reload: 5 },
+    "Stap": { color: "#ff69b4", type: "8-way", desc: "Dispara en 8 direcciones.", reload: 5 },
+    "Squap": { color: "#ff69b4", type: "shooter", desc: "Dispara burbujas cada medio segundo.", reload: 5 },
+    "Spenge": { color: "#ff69b4", type: "charge", desc: "Se recarga y lanza un chorro de espuma perforante. Los jabones adyacentes aumentan su recarga.", reload: 20 },
+    "ReactorDoble": { color: "#ff69b4", type: "producer", desc: "Genera rayos el doble de rápido.", reload: 5 },
+    "Ballge": { color: "#ff69b4", type: "ball", desc: "Se recarga y rueda para golpear a los enemigos.", reload: 5 },
+    "Ikelo": { color: "#ff69b4", type: "shooter_ice", desc: "Dispaña y ralentiza a los enemigos.", reload: 5 },
+    "Fuernando": { color: "#ff69b4", type: "shooter_fire", desc: "Inflige el doble de daño a los gérmenes.", reload: 5 },
+    "Pennfume": { color: "#ff69b4", type: "shooter_slow", desc: "Ralentiza a los enemigos en una líbea.", reload: 5 },
+    "Ninjap": { color: "#ff69b4", type: "ninja", desc: "Alterna disparos entre cruz y X.", reload: 10 },
+    "RunnerSoaphie": { color: "#ff69b4", type: "runner", desc: "Dispara en una línea cuando está cerca de la ciudad y en seis direcciones cuanto más alejada está.", reload: 5 },
+    "Pastual": { color: "#ff69b4", type: "passive_slow", desc: "Ralentiza a los gérmenes que pasen sobre él.", reload: 20 },
+    "Lypia": { color: "#ff69b4", type: "laser", desc: "Dispara un láser perforante.", reload: 5 },
+    "Elenectrica": { color: "#ff69b4", type: "electric", desc: "Dispara bolas eléctricas perforantes que producen rayos vitalizadores.", reload: 5 },
+    "Vampierce": { color: "#ff69b4", type: "aura", desc: "Quita las armaduras de sangre a los gérmenes.", reload: 5 },
+    "RunnerNinjap": { color: "#ff69b4", type: "ninja_switch", desc: "Inflige mucho daño 4 direcciones y poco daño en 4 direcciones. Toca para intercambiar sus disparos.", reload: 5 },
+    "Knap": { color: "#ff69b4", type: "melee_knock", desc: "Empuja enemigos y permite poner a un héroe encima.", reload: 10 },
+    "Lashra": { color: "#ff69b4", type: "explosive_spike", desc: "Lanza púas explosivas.", reload: 5 },
+    "Roostert": { color: "#ff69b4", type: "roostert_blade", desc: "Derrota instantáneamente a la mayoría de los enemigos.", reload: 5 },
     // Objetos especiales (No comprables, solo para niveles específicos)
     "CatapultaEspuma": { color: "#fff", type: "catapult", desc: "No jugable. Lanza espuma cada 2s.", hp: 500 },
     "CatapultaHielo": { color: "#a5f2f3", type: "catapult_ice", desc: "No jugable. Congela el suelo.", hp: 500 },
@@ -374,6 +381,7 @@ const spriteUrls = {
     "Roostert": "https://i.postimg.cc/J4fL3fnp/Roostert.png",
     "CatapultaEspuma": "https://i.postimg.cc/V6CTN69R/Catapulta_de_espuma.png",
     "CatapultaHielo": "https://i.postimg.cc/1tqTzt0J/Catapulta_de_hielo.png",
+    "MaquinaAgrandadora": "https://i.postimg.cc/50zG0dWc/Maquina-agrandadora.png",
 };
 
 const ballgeRollUrl = "https://i.postimg.cc/HnsYWGJ1/Ballge_rolling.png";
@@ -649,7 +657,7 @@ const LEVELS = [
     { count: 65, rate: 300, pool: ["Normal", "Sangre", "MasSangre", "Resortera", "Super", "Acuatico", "Hielo", "Fuego", "Succionador"] },
     { count: 1, rate: 100, pool: ["BossFinal"], fixedDeck: ["ReactorDoble", "Soaphie", "Ballge", "Ikelo", "Fuernando", "Pennfume"] }, // Level 36
     { count: 45, rate: 380, pool: ["Normal", "Sangre", "MasSangre", "Teleporter"] },
-    { count: 40, rate: 650, pool: ["Normal", "Sangre", "MasSangre", "Teleporter"], fixedDeck: ["ReactorDoble", "Ninjap"], forbiddenRows: [1, 3] },
+    { count: 40, rate: 300, pool: ["Normal", "Sangre", "MasSangre", "Teleporter"], fixedDeck: ["ReactorDoble", "Ninjap"], forbiddenRows: [1, 3] },
     { count: 50, rate: 380, pool: ["Normal", "Sangre", "MasSangre", "Teleporter"], objective: "saveHeroes15" },
     { count: 60, rate: 350, pool: ["Normal", "Sangre", "MasSangre", "Resortera", "Super", "Acuatico", "Hielo", "Fuego", "Succionador", "Teleporter"], constraint: "maxHeroes20" },
     { count: 50, rate: 380, pool: ["Normal", "Sangre", "MasSangre", "Acuatico", "Fuego"], specialObj: "protectReactorsCol6", startSetup: "level41" },
@@ -667,7 +675,7 @@ const LEVELS = [
     { count: 70, rate: 280, pool: ["Normal", "Sangre", "MasSangre", "Resortera", "Super", "Acuatico", "Hielo", "Fuego", "Succionador", "Teleporter"] },
     { count: 1, rate: 100, pool: ["BossGegionV2"], fixedDeck: ["ReactorDoble", "Pennfume", "Ninjap", "RunnerSoaphie", "Pastual", "Lypia"] }, // Level 54
     { count: 50, rate: 350, pool: ["Normal", "Sangre", "MasSangre", "Vampiro"] }, // 55
-    { count: 55, rate: 350, pool: ["Normal", "Sangre", "MasSangre", "Vampiro"], objective: "produce750", fixedDeck: ["Reactor", "Elenectrica"] }, // 56
+    { count: 55, rate: 350, pool: ["Normal", "Sangre", "MasSangre", "Vampiro"], objective: "produce350", fixedDeck: ["Reactor", "Elenectrica"] }, // 56
     { count: 40, rate: 350, pool: ["Normal", "Super", "SuperRojo"], fixedDeck: ["Squap", "Fuernando"], startSetup: "level57" }, // 57
     { count: 60, rate: 300, pool: ["Normal", "MasSangre"], fixedDeck: ["ReactorDoble", "Squap"], forbiddenCols: [6,7,8,9], startSetup: "level58" }, // 58
     { count: 50, rate: 350, pool: ["Normal", "Sangre", "MasSangre", "Vampiro"], fixedDeck: ["ReactorDoble", "Soaphie", "Vampierce"] }, // 59
@@ -708,10 +716,17 @@ let gameState = {
     availableHeroes: [], currentDeck: [],
     hasTrash: false, isTrashing: false, trashUpgrade: false, trashUpgrade2: false,
     bossHP: 0, machines: [], timerRayo: 20,
-    deckLimit7: false,
+    deckUpgrade: false,
+    heroBonusActive: false,
+    trashBonusActive: false,
     producedRaysCount: 0, heroesLostCount: 0, superSpawned: 0, raysSpent: 0,
     killObjCount: 0, killObjFailed: false, bossStartedSpawning: false, levelFrame: 0,
-    coins: 0, bills: 0,
+            coins: 0,
+        bills: 0,
+        adsCoinsToday: 0,
+        adsBillsToday: 0,
+        lastAdReset: 0,
+        noAds: false,
     inventory: {},
     dailyPlayed: [],
     lastDate: "",
@@ -736,7 +751,7 @@ HERO_NAMES.forEach(name => {
 let heroes = [], enemies = [], projectiles = [], popups = [];
 
 /** * SISTEMA DE GUARDADO Y CARGA */
-const SAVE_VERSION = 11; // Version Bump
+const SAVE_VERSION = 1;
 function saveProgress() {
     const saveData = { 
         version: SAVE_VERSION, 
@@ -746,7 +761,13 @@ function saveProgress() {
         inventory: gameState.inventory,
         dailyPlayed: gameState.dailyPlayed,
         lastDate: gameState.lastDate,
-        infinite: gameState.infinite
+        infinite: gameState.infinite,
+        trashBonusActive: gameState.trashBonusActive,
+        heroBonusActive: gameState.heroBonusActive,
+        adsCoinsToday: gameState.adsCoinsToday,
+        adsBillsToday: gameState.adsBillsToday,
+        lastAdReset: gameState.lastAdReset,
+        noAds: gameState.noAds,
     };
     localStorage.setItem('AntiviralsDefenseSave', JSON.stringify(saveData));
     updateMenuResources();
@@ -754,16 +775,30 @@ function saveProgress() {
 
 function loadProgress() {
     const saved = localStorage.getItem('AntiviralsDefenseSave');
+    const present = new Date().toLocaleDateString();
     if (saved) {
         const data = JSON.parse(saved);
         gameState.maxLevel = data.maxLevel || 1;
         gameState.coins = data.coins || 0;
         gameState.bills = data.bills || 0;
+        gameState.adsCoinsToday = data.adsCoinsToday || 0;
+        gameState.adsBillsToday = data.adsBillsToday || 0;
+        gameState.lastAdReset = data.lastAdReset || present;
+        gameState.noAds = data.noAds || false;
+        
+        if (gameState.lastAdReset !== present) {
+            gameState.adsCoinsToday = 0;
+            gameState.adsBillsToday = 0;
+            gameState.lastAdReset = present;
+        }
+
         gameState.dailyPlayed = data.dailyPlayed || [];
         gameState.lastDate = data.lastDate || "";
         gameState.infinite = data.infinite || { 
             active: false, wave: 1, deck: [], pool: ["Reactor", "Soaphie"], pendingCoins: 0, pendingBills: 0, savedBoard: [] 
         };
+        gameState.trashBonusActive = data.trashBonusActive || false;
+        gameState.heroBonusActive = data.heroBonusActive || false;
         // Compatibilidad hacia atrás si faltan campos
         if(!gameState.infinite.pool) gameState.infinite.pool = ["Reactor", "Soaphie"];
         if(!gameState.infinite.deck) gameState.infinite.deck = ["Reactor", "Soaphie"];
@@ -798,20 +833,53 @@ function loadProgress() {
     updateInfiniteButton();
 }
 
-function resetProgress() {
-    if(confirm("¿Seguro que quieres borrar todo el progreso? Se perderán niveles y mejoras.")) {
-        localStorage.removeItem('AntiviralsDefenseSave');
-        location.reload();
-    }
-}
-
 /** * GESTIÓN DE RECURSOS Y UI MENU */
 function updateMenuResources() {
     document.getElementById('menu-coins').innerText = gameState.coins;
     document.getElementById('menu-bills').innerText = gameState.bills;
-    document.getElementById('shop-coins').innerText = gameState.coins;
-    document.getElementById('shop-bills').innerText = gameState.bills;
+    if (document.getElementById('shop-coins')) document.getElementById('shop-coins').innerText = gameState.coins;
+    if (document.getElementById('shop-bills')) document.getElementById('shop-bills').innerText = gameState.bills;
     document.getElementById('daily-count').innerText = gameState.dailyPlayed.length;
+    updateAdButtons();
+}
+
+function updateAdButtons() {
+    const coinBtn = document.getElementById('ad-coins-btn');
+    const billBtn = document.getElementById('ad-bills-btn');
+    if (coinBtn) {
+        const left = 3 - gameState.adsCoinsToday;
+        coinBtn.innerText = `📺 +500 💰 (${left}/3)`;
+        coinBtn.disabled = left <= 0;
+        coinBtn.style.opacity = left <= 0 ? "0.5" : "1";
+    }
+    if (billBtn) {
+        const left = 3 - gameState.adsBillsToday;
+        billBtn.innerText = `📺 +3 💵 (${left}/3)`;
+        billBtn.disabled = left <= 0;
+        billBtn.style.opacity = left <= 0 ? "0.5" : "1";
+    }
+}
+
+function watchAdForCoins() {
+    if (gameState.adsCoinsToday >= 3) return;
+    alert("Viendo anuncio para conseguir monedas...");
+    setTimeout(() => {
+        gameState.adsCoinsToday++;
+        gameState.coins += 500;
+        alert("¡Has recibido 500 monedas!");
+        saveProgress();
+    }, 1000);
+}
+
+function watchAdForBills() {
+    if (gameState.adsBillsToday >= 3) return;
+    alert("Viendo anuncio para conseguir billetes...");
+    setTimeout(() => {
+        gameState.adsBillsToday++;
+        gameState.bills += 3;
+        alert("¡Has recibido 3 billetes!");
+        saveProgress();
+    }, 1000);
 }
 
 function updateUpgradesButton() {
@@ -879,24 +947,40 @@ function buyMegaPack() {
     if (gameState.bills >= 50) {
         gameState.bills -= 50;
         openPack(true);
-        updateMenuResources();
+        saveProgress();
     } else {
-        alert("No tienes suficientes billetes (50).");
+        alert("¡No tienes suficientes billetes!");
+    }
+}
+
+function buyPack(type, amount, price) {
+    if (confirm(`¿Deseas comprar ${amount} ${type === 'coins' ? 'monedas' : 'billetes'} por $${price} MXN?`)) {
+        if (type === 'coins') {
+            gameState.coins += amount;
+            gameState.noAds = true;
+        }
+        else {
+            gameState.bills += amount;
+            gameState.noAds = true;
+            alert(`¡Compra realizada! Has recibido ${amount} ${type === 'coins' ? 'monedas' : 'billetes'}.`);
+            saveProgress();
+            renderUpgradeList();
+        }
     }
 }
 
 function upgradeHero(name) {
     let heroData = gameState.inventory[name];
     if (heroData.level >= 10) return alert("¡Nivel máximo alcanzado!");
-    if (heroData.chips >= 200 && gameState.coins >= 2500) {
+    if (heroData.chips >= 200 && gameState.coins >= 1500) {
         heroData.chips -= 200;
-        gameState.coins -= 2500;
+        gameState.coins -= 1500;
         heroData.level++;
         saveProgress();
         renderUpgradeList();
         alert(`¡${name} subió al nivel ${heroData.level}!`);
     } else {
-        alert("Necesitas 200 fichas y 2500 monedas.");
+        alert("Necesitas 200 fichas y 1500 monedas.");
     }
 }
 
@@ -939,8 +1023,8 @@ function getHeroStats(name, lvl) {
 
     const soapDmg = lvl * 10;
     if (["Soaphie", "Doblap", "Stap", "Squap", "RunnerSoaphie", "Ninjap"].includes(name)) stats.dmg = soapDmg;
-    if (name === "Spenge") stats.baseDmg = lvl === 1 ? 20 : (getHeroStats(name, lvl - 1).baseDmg * 1.2);
-    else if (name === "Ballge") stats.baseDmg = lvl === 1 ? 100 : (getHeroStats(name, lvl - 1).baseDmg * 1.2);
+    if (name === "Spenge") stats.baseDmg = lvl === 1 ? 20 : (getHeroStats(name, lvl - 1).baseDmg * 2);
+    else if (name === "Ballge") stats.baseDmg = lvl === 1 ? 50 : (getHeroStats(name, lvl - 1).baseDmg * 2);
     if (name === "Ikelo") stats.dmg = 20 * lvl;
     if (name === "Fuernando") stats.dmg = 40 * lvl;
     if (name === "Lypia") {
@@ -1044,7 +1128,7 @@ function renderUpgradeList() {
         let statsNow = getHeroStats(name, hInv.level);
         let statsNext = getHeroStats(name, hInv.level + 1);
         let dmgLabel = statsNow.dmg || statsNow.baseDmg || 0;
-        let canUpgrade = hInv.level < 10 && hInv.chips >= 200 && gameState.coins >= 2500;
+        let canUpgrade = hInv.level < 10 && hInv.chips >= 200 && gameState.coins >= 1500;
         
         card.innerHTML = `
             <h3>${name} <span style="font-size:12px; color:white">Nvl ${hInv.level}</span></h3>
@@ -1056,9 +1140,87 @@ function renderUpgradeList() {
             </div>
             <div style="background:#222; padding:5px; border-radius:4px; font-size:11px; display:flex; justify-content:space-between;">
                 <span>Fichas: ${hInv.chips}/200</span>
-                <span>${hInv.level < 10 ? '2500💰' : 'MAX'}</span>
+                <span>${hInv.level < 10 ? '1500💰' : 'MAX'}</span>
             </div>
             ${hInv.level < 10 ? `<button class="btn upgrade-btn" style="background:${canUpgrade ? '#4caf50' : '#555'}" onclick="upgradeHero('${name}')">Mejorar</button>` : '<button class="btn upgrade-btn" style="background:#gold; color:black; cursor:default">MÁXIMO</button>'}
+        `;
+        container.appendChild(card);
+
+    });
+    let antiguoMazoCard = document.getElementById('premium-deck-slot-card');
+    if (antiguoMazoCard) antiguoMazoCard.remove();
+
+    let cardMazoPago = document.createElement('div');
+    cardMazoPago.id = "premium-deck-slot-card";
+    cardMazoPago.className = "info-card";
+    cardMazoPago.style.border = "2px solid #ff9800"; // Borde naranja llamativo
+    cardMazoPago.style.padding = "15px";
+    cardMazoPago.style.margin = "10px";
+
+    // Validar si el beneficio ya fue adquirido mediante el gameState global
+    let mazoExpandidoAdquirido = !!gameState.heroBonusActive;
+
+    cardMazoPago.innerHTML = `
+        <h3 style="color:#ff9800; margin-top:0;">✨ Bonus de mazo</h3>
+        <p style="font-size:13px; color:#eee;">¡Lleva tu estrategia al siguiente nivel! Desbloquea de forma permanente una <strong>ranura de héroe extra</strong> para tus partidas.</p>
+        <div style="margin-top: 15px;">
+            ${mazoExpandidoAdquirido 
+                ? '<button style="width:100%; padding:10px; background:#555; color:#aaa; border:none; cursor:default;" disabled>¡ADQUIRIDO!</button>' 
+                : '<button style="width:100%; padding:10px; background:#ff9800; color:black; font-weight:bold; border:none; cursor:pointer;" onclick="procesarPagoMazo7()">Comprar ($50 MXN)</button>'}
+        </div>
+    `;
+    container.appendChild(cardMazoPago);
+
+    let cardBasureroPago = document.createElement('div');
+    cardBasureroPago.id = "bono-basurero-card";
+    cardBasureroPago.className = "info-card";
+    cardBasureroPago.style.border = "2px solid #00bcd4";
+    cardBasureroPago.style.padding = "15px";
+    cardBasureroPago.style.margin = "10px";
+
+    let yaComprado = gameState.trashUpgrade || gameState.trashUpgrade2 || gameState.trashBonusActive;
+
+    cardBasureroPago.className = "info-card"; // Usa la clase de tus tarjetas actuales
+    cardBasureroPago.style.border = "2px solid #00bcd4";
+    cardBasureroPago.style.padding = "15px";
+    cardBasureroPago.style.margin = "10px";
+
+    cardBasureroPago.innerHTML = `
+        <h3 style="color:#00bcd4; margin-top:0;">✨ Bonus de basurero</h3>
+        <p style="font-size:13px; color:#eee;">¡Añade un +25% de reembolso permanente! Al desmantelar héroes recuperarás un 25% extra de los rayos vitalizadores que vale el héroe.</p>
+        <div style="margin-top: 15px;">
+            ${yaComprado 
+                ? '<button style="width:100%; padding:10px; background:#555; color:#aaa; border:none; cursor:default;" disabled>¡ADQUIRIDO!</button>' 
+                : '<button style="width:100%; padding:10px; background:#00bcd4; color:white; font-weight:bold; border:none; cursor:pointer;" onclick="procesarPagoBasurero()">Comprar ($50 MXN)</button>'}
+        </div>
+    `;
+
+    container.appendChild(cardBasureroPago);
+
+    // Paquetes de Monedas y Billetes
+    const shopPacks = [
+        { name: "5000 Monedas", price: 27, type: "coins", amount: 5000 },
+        { name: "10000 Monedas", price: 47, type: "coins", amount: 10000 },
+        { name: "22000 Monedas", price: 95, type: "coins", amount: 22000 },
+        { name: "50000 Monedas", price: 189, type: "coins", amount: 50000 },
+        { name: "150000 Monedas", price: 479, type: "coins", amount: 150000 },
+        { name: "350000 Monedas", price: 899, type: "coins", amount: 350000 },
+        { name: "20 Billetes", price: 18, type: "bills", amount: 20 },
+        { name: "50 Billetes", price: 47, type: "bills", amount: 50 },
+        { name: "110 Billetes", price: 95, type: "bills", amount: 110 },
+        { name: "250 Billetes", price: 189, type: "bills", amount: 250 },
+        { name: "700 Billetes", price: 479, type: "bills", amount: 700 },
+        { name: "1800 Billetes", price: 899, type: "bills", amount: 1800 }
+    ];
+
+    shopPacks.forEach(pack => {
+        let card = document.createElement('div');
+        card.className = "info-card";
+        card.style.border = pack.type === "coins" ? "1px solid gold" : "1px solid #4caf50";
+        card.innerHTML = `
+            <h3>${pack.name}</h3>
+            <p style="font-size:13px; color:#eee;">${pack.amount} ${pack.type === "coins" ? "Monedas" : "Billetes"}</p>
+            <button class="btn ${pack.type === "coins" ? "btn-gold" : "btn-blue"}" style="width:100%;" onclick="buyPack('${pack.type}', ${pack.amount}, ${pack.price})">Comprar ($${pack.price} MXN)</button>
         `;
         container.appendChild(card);
     });
@@ -1212,12 +1374,21 @@ function claimInfiniteRewards() {
 
 // SERIALIZACIÓN DEL TABLERO
 function saveInfiniteBoard() {
-    gameState.infinite.savedBoard = heroes.filter(h => h.hp > 0).map(h => ({
-        col: h.col,
-        row: h.y, // Usamos 'y' como fila en el objeto Hero original
-        name: h.name,
-        hp: h.hp
-    }));
+    gameState.infinite.savedBoard = heroes.filter(h => h.hp > 0).map(h => {
+        let data = {
+            col: h.col,
+            row: h.y,
+            name: h.name,
+            hp: h.hp
+        };
+        if (h.carriedHero) {
+            data.carriedHero = {
+                name: h.carriedHero.name,
+                hp: h.carriedHero.hp
+            };
+        }
+        return data;
+    });
     // También guardamos los rayos
     gameState.infinite.savedRays = gameState.rayos;
 }
@@ -1227,6 +1398,10 @@ function loadInfiniteBoard() {
         heroes = gameState.infinite.savedBoard.map(d => {
             let h = new Hero(d.col, d.row, d.name);
             h.hp = d.hp;
+            if (d.carriedHero) {
+                h.carriedHero = new Hero(d.col, d.row, d.carriedHero.name);
+                h.carriedHero.hp = d.carriedHero.hp;
+            }
             return h;
         });
     }
@@ -1290,63 +1465,128 @@ function prepareLevel(lvlNum) {
     }
 }
 
-function showDeckSelector(lvlNum, isInfinite) {
-    document.getElementById('menu-screen').style.display = 'none';
-    document.getElementById('draft-screen').style.display = 'none';
+function showDeckSelector(levelIndex, isInfinite = false) {
+    document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
     document.getElementById('deck-screen').style.display = 'block';
-    
-    // Configurar botones
-    const btnConfirm = document.getElementById('deck-confirm-btn');
-    const btnSaveExit = document.getElementById('deck-save-exit-btn');
-    const btnBack = document.getElementById('deck-back-btn');
-    
-    const h2 = document.querySelector('#deck-screen h2');
+    document.getElementById('hero-selector').style.display = 'none';
 
-    if (isInfinite) {
-        btnConfirm.onclick = () => confirmInfiniteDeck();
-        btnSaveExit.style.display = 'inline-block';
-        btnBack.style.display = 'none'; 
-        h2.innerHTML = `Ola ${gameState.infinite.wave} <span style="font-size:0.7em">(<span id="deck-count">0/6</span>)</span>`;
-    } else {
-        btnConfirm.onclick = () => confirmDeck();
-        btnSaveExit.style.display = 'none';
-        btnBack.style.display = 'inline-block';
-        h2.innerHTML = `Elige tu Equipo <span style="font-size:0.7em">(<span id="deck-count">0/${gameState.deckLimit7 ? 7 : 6}</span>)</span>`;
+    // Determinar el límite dinámico (7 si se compró el mazo expandido, 6 por defecto)
+    let maxSlots = 6
+    if (gameState.deckUpgrade) {
+        maxSlots += 1;
+    }
+    if (gameState.heroBonusActive) {
+        maxSlots += 1;
+    }
+    
+    // Si no estamos en modo infinito, reiniciamos el mazo temporal del jugador
+    if (!isInfinite) {
+        gameState.currentDeck = [];
     }
 
+    // Actualizar visualmente la etiqueta del contador
+    document.getElementById('deck-count').innerText = `${gameState.currentDeck.length}/${maxSlots}`;
+
+    // Mostrar u ocultar el botón de guardar y salir según el modo
+    const saveExitBtn = document.getElementById('deck-save-exit-btn');
+    if (saveExitBtn) saveExitBtn.style.display = isInfinite ? 'inline-block' : 'none';
+
+    // Renderizar las ranuras seleccionadas y el pool disponible
+    renderDeckSelection();
+}
+
+function renderDeckSelection() {
+    const selectedContainer = document.getElementById('deck-selected');
     const poolContainer = document.getElementById('deck-pool');
-    poolContainer.innerHTML = "";
-    
-    let sourcePool = isInfinite ? gameState.infinite.pool : gameState.availableHeroes;
+    if (!selectedContainer || !poolContainer) return;
 
-    if (!isInfinite && lvlNum === 61) {
-        sourcePool = sourcePool.filter(hero => 
-            hero !== "Reactor" && 
-            hero !== "ReactorDoble" && 
-            hero !== "Elenectrica"
-        );
+    selectedContainer.innerHTML = "";
+    poolContainer.innerHTML = "";
+
+    let maxSlots = 6
+    if (gameState.deckUpgrade) {
+        maxSlots += 1;
     }
+    if (gameState.heroBonusActive) {
+        maxSlots += 1;
+    }
+    document.getElementById('deck-count').innerText = `${gameState.currentDeck.length}/${maxSlots}`;
+
+    // 1. Dibujar ranuras del Mazo Seleccionado
+    for (let i = 0; i < maxSlots; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'deck-slot';
+        // Estilos para mantener una bonita estética en tu interfaz oscura
+        slot.style.width = "55px";
+        slot.style.height = "75px";
+        slot.style.border = "2px dashed #555";
+        slot.style.borderRadius = "6px";
+        slot.style.display = "flex";
+        slot.style.flexDirection = "column";
+        slot.style.alignItems = "center";
+        slot.style.justifyContent = "center";
+        slot.style.background = "rgba(0,0,0,0.4)";
+
+        if (gameState.currentDeck[i]) {
+            const heroName = gameState.currentDeck[i];
+            let lvl = gameState.inventory[heroName]?.level || 1;
+            let stats = getHeroStats(heroName, lvl);
+            
+            slot.style.border = "2px solid #ffeb3b";
+            slot.style.background = "linear-gradient(135deg, #444 0%, #222 100%)";
+            slot.style.cursor = "pointer";
+            slot.innerHTML = `
+                <img src="${spriteUrls[heroName] || ''}" style="width:36px; height:36px; object-fit:contain;">
+                <span style="font-size:9px; color:gold; font-weight:bold;">${heroName}</span>
+            `;
+            slot.onclick = () => {
+                const idx = gameState.currentDeck.indexOf(heroName);
+                if (idx > -1) gameState.currentDeck.splice(idx, 1);
+                renderDeckSelection();
+            };
+        } else {
+            slot.innerHTML = `<span style="color:#666; font-size:20px;">+</span>`;
+        }
+        selectedContainer.appendChild(slot);
+    }
+
+    // 2. Dibujar el Pool de Héroes Disponibles para elegir
+    const poolData = (gameState.mode === 'infinite') ? gameState.infinite.pool : gameState.availableHeroes;
     
-    sourcePool.forEach(hero => {
-        let lvl = gameState.inventory[hero].level;
-        let stats = getHeroStats(hero, lvl);
-        let btn = createCardHTML(hero, stats.cost, lvl);
-        btn.onclick = () => toggleDeckHero(hero);
-        poolContainer.appendChild(btn);
+    poolData.forEach(heroName => {
+        // Evitamos duplicar si ya está puesto en el mazo
+        if (gameState.currentDeck.includes(heroName)) return;
+
+        let lvl = gameState.inventory[heroName]?.level || 1;
+        let stats = getHeroStats(heroName, lvl);
+
+        // Usamos la misma estructura de cartas .hero-card que ya tienes estilizada en tu CSS
+        let card = document.createElement('div');
+        card.className = "hero-card";
+        card.innerHTML = `
+            <img src="${spriteUrls[heroName] || ''}" style="width:32px; height:32px; margin-top:4px; object-fit:contain;">
+            <span style="font-size:9px; font-weight:bold; margin-top:2px;">${heroName}</span>
+            <span style="font-size:9px; color:#4caf50;">⚡${stats.cost}</span>
+        `;
+        
+        card.onclick = () => {
+            if (gameState.currentDeck.length >= maxSlots) {
+                alert(`Tu mazo estratégico está lleno. El límite actual es de ${maxSlots} héroes.`);
+                return;
+            }
+            gameState.currentDeck.push(heroName);
+            renderDeckSelection();
+        };
+        poolContainer.appendChild(card);
     });
-    
-    // Pre-seleccionar el mazo actual
-    tempDeck = isInfinite ? [...gameState.infinite.deck] : [];
-    renderDeckSelected();
-    
-    // Marcar visualmente
-    updateDeckVisuals();
 }
 
 let tempDeck = [];
 function toggleDeckHero(heroName) {
     const idx = tempDeck.indexOf(heroName);
-    const maxDeck = gameState.deckLimit7 ? 7 : 6;
+    let maxDeck = 6;
+    if (gameState.deckUpgrade) maxDeck += 1;
+    if (gameState.heroBonusActive) maxDeck += 1;
     if (idx > -1) {
         tempDeck.splice(idx, 1);
     } else {
@@ -1371,7 +1611,9 @@ function updateDeckVisuals() {
 function renderDeckSelected() {
     const container = document.getElementById('deck-selected');
     container.innerHTML = "";
-    const maxDeck = gameState.deckLimit7 ? 7 : 6;
+    let maxDeck = 6;
+    if (gameState.deckUpgrade) maxDeck += 1;
+    if (gameState.heroBonusActive) maxDeck += 1;
     const counter = document.getElementById('deck-count');
     if(counter) counter.innerText = `${tempDeck.length}/${maxDeck}`;
     
@@ -1385,10 +1627,23 @@ function renderDeckSelected() {
 }
 
 function confirmDeck() {
-    if (tempDeck.length === 0) return alert("Elige al menos un héroe.");
-    gameState.currentDeck = [...tempDeck];
+    if (!gameState.currentDeck || gameState.currentDeck.length === 0) {
+        alert("Debes seleccionar al menos 1 héroe para poder jugar.");
+        return;
+    }
+
+    // Ocultar la pantalla del mazo y limpiar cualquier otra pantalla activa
     document.getElementById('deck-screen').style.display = 'none';
-    startLevel(LEVELS[gameState.level - 1]);
+    document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+
+    if (gameState.mode === 'infinite') {
+        gameState.infinite.deck = [...gameState.currentDeck];
+        saveProgress();
+        prepareInfiniteLevel(); // Carga la ola, dificultad y gérmenes correspondientes
+    } else {
+        const lvlData = LEVELS[gameState.level - 1];
+        startLevel(lvlData); // Carga el nivel de historia correspondiente
+    }
 }
 
 function confirmInfiniteDeck() {
@@ -1519,10 +1774,10 @@ function setupLevel45() {
 }
 function setupLevel52() { for(let r=0; r<5; r++) { let h = new Hero(0, r, "Lypia"); h.isProtected = true; heroes.push(h); } }
 function setupLevel57() {
-    // Una columna de Elenéctricas y una columna de Ballges
     for(let r=0; r<5; r++) {
         heroes.push(new Hero(0, r, "Elenectrica"));
         heroes.push(new Hero(1, r, "Ballge"));
+        heroes.push(new Hero(2, r, "Ballge"));
     }
 }
 function setupLevel58() {
@@ -1643,28 +1898,28 @@ function checkUnlocks(lvl) {
     if (gameState.maxLevel >= 2) all.push("Doblap");
     if (gameState.maxLevel >= 4) all.push("Stap");
     if (gameState.maxLevel >= 5) all.push("Squap");
-    if (gameState.maxLevel >= 11) all.push("Spenge");
-    if (gameState.maxLevel >= 14) all.push("ReactorDoble");
-    if (gameState.maxLevel >= 16) all.push("Ballge");
-    if (gameState.maxLevel >= 19) all.push("Ikelo");
-    if (gameState.maxLevel >= 24) all.push("Fuernando");
-    if (gameState.maxLevel >= 29) all.push("Pennfume");
-    if (gameState.maxLevel >= 37) all.push("Ninjap");
-    if (gameState.maxLevel >= 43) all.push("RunnerSoaphie");
-    if (gameState.maxLevel >= 47) all.push("Pastual");
-    if (gameState.maxLevel >= 50) all.push("Lypia");
-    if (gameState.maxLevel >= 55) all.push("Elenectrica");
-    if (gameState.maxLevel >= 58) all.push("Vampierce");
-    if (gameState.maxLevel >= 64) all.push("RunnerNinjap");
-    if (gameState.maxLevel >= 67) all.push("Knap");
-    if (gameState.maxLevel >= 73) all.push("Lashra");
-    if (gameState.maxLevel >= 80) all.push("Roostert");
+    if (gameState.maxLevel >= 12) all.push("Spenge");
+    if (gameState.maxLevel >= 15) all.push("ReactorDoble");
+    if (gameState.maxLevel >= 17) all.push("Ballge");
+    if (gameState.maxLevel >= 20) all.push("Ikelo");
+    if (gameState.maxLevel >= 25) all.push("Fuernando");
+    if (gameState.maxLevel >= 30) all.push("Pennfume");
+    if (gameState.maxLevel >= 38) all.push("Ninjap");
+    if (gameState.maxLevel >= 44) all.push("RunnerSoaphie");
+    if (gameState.maxLevel >= 48) all.push("Pastual");
+    if (gameState.maxLevel >= 51) all.push("Lypia");
+    if (gameState.maxLevel >= 56) all.push("Elenectrica");
+    if (gameState.maxLevel >= 59) all.push("Vampierce");
+    if (gameState.maxLevel >= 65) all.push("RunnerNinjap");
+    if (gameState.maxLevel >= 68) all.push("Knap");
+    if (gameState.maxLevel >= 74) all.push("Lashra");
+    if (gameState.maxLevel >= 81) all.push("Roostert");
     gameState.availableHeroes = all;
     
     gameState.hasTrash = (lvl >= 6);
     gameState.trashUpgrade = (lvl >= 22);
     gameState.trashUpgrade2 = (gameState.maxLevel >= 45);
-    gameState.deckLimit7 = (gameState.maxLevel >= 38);
+    gameState.deckUpgrade = (gameState.maxLevel >= 38);
     
     if (gameState.mode === 'infinite') {
         gameState.hasTrash = true;
@@ -1805,7 +2060,7 @@ class Hero {
             this.level = 1;
             this.hp = 500;
             this.maxHp = 500;
-            this.stats = { hp: 500, range: 0 }; 
+            this.stats = { hp: 500, range: 0, cost: 0 }; 
             this.data = HEROES_INFO[name] || { color: "#fff" };
             this.shoot = function() { }; 
         } else {
@@ -1846,11 +2101,17 @@ class Hero {
             // A. Fase Estática: Disparar
             if (!this.isRolling) {
                 this.timer++;
+                
+                // --- NUEVO: Generación continua de charcos ---
+                // Se ha eliminado la generación de charcos en la posición de la catapulta para evitar charcos frente a ellas.
+
                 // Disparo cada 2 segundos (120 frames)
                 if (this.timer >= 120) {
-                    let pType = this.name.includes("Hielo") ? "ice_bomb" : "foam_bomb";
-                    // Creamos un proyectil real para evitar errores de draw()
-                    let p = new Projectile(this.realX + 60, this.realY + 30, 20, 5, 0, false, pType);
+                    let isIce = this.name.includes("Hielo");
+                    let pType = isIce ? "ice_bomb" : "foam_bomb";
+                    // Daño: 20 para espuma, 40 para hielo (el doble)
+                    let dmg = isIce ? 40 : 20;
+                    let p = new Projectile(this.realX + 60, this.realY + 30, dmg, 5, 0, false, pType);
                     projectiles.push(p);
                     this.timer = 0;
                 }
@@ -1900,8 +2161,7 @@ class Hero {
                 createPopup(this.col * 80 + 40, this.y * 80 + 40, "¡Libre!", "lime");
             }
         }
-
-        // Lógica Vampierce (Purificación)
+        
         if (this.name === "Vampierce") {
             enemies.forEach(e => {
                 if ((e.type === "Sangre" || e.type === "MasSangre") && 
@@ -2068,6 +2328,9 @@ class Hero {
             if (n.name === "Doblap") bonus += 4;
             if (n.name === "Squap") bonus += 8;
             if (n.name === "Ninjap") bonus += 5;
+            if (n.name === "RunnerSoaphie") bonus += 3;
+            if (n.name === "Knap") bonus += 4;
+            if (n.name === "RunnerNinjap") bonus += 16;
         });
         return Math.max(0, dmg + (bonus * seconds));
     };
@@ -2470,7 +2733,7 @@ class Enemy {
         if (this.data.isSpeedster) {
             this.specialTimer++;
             // 600 frames son aprox 10 segundos
-            if (this.specialTimer >= 600) {
+            if (this.specialTimer >= 300) {
                 // Verificamos si ya aceleró para que solo lo haga UNA vez
                 if (!this.hasAccelerated) {
                     this.data.speed *= 2; // Multiplica SU velocidad individual
@@ -2596,24 +2859,29 @@ class Enemy {
     }
 }
 
-draw() {
+    draw() {
     // --- DIBUJO DE MÁQUINA AGRANDADORA ---
     if (this.isGrowMachine) {
-        // Caja metálica oscura
-        ctx.fillStyle = "#444"; 
-        ctx.fillRect(this.x, this.y, 60, 60);
-        
-        // Borde "industrial"
-        ctx.strokeStyle = "#888";
-        ctx.lineWidth = 3;
-        ctx.strokeRect(this.x, this.y, 60, 60);
+        const mImg = heroSprites["MaquinaAgrandadora"];
+        if (mImg && mImg.complete) {
+            ctx.drawImage(mImg, this.x - 5, this.y - 5, 70, 70);
+        } else {
+            // Caja metálica oscura (Fallback)
+            ctx.fillStyle = "#444"; 
+            ctx.fillRect(this.x, this.y, 60, 60);
+            
+            // Borde "industrial"
+            ctx.strokeStyle = "#888";
+            ctx.lineWidth = 3;
+            ctx.strokeRect(this.x, this.y, 60, 60);
 
-        // Puerto de salida (parpadea cuando está cerca de generar)
-        let portColor = (this.spawnTimer > 4700) ? "#ff00ff" : "#222";
-        ctx.fillStyle = portColor;
-        ctx.beginPath();
-        ctx.arc(this.x + 30, this.y + 30, 15, 0, Math.PI*2);
-        ctx.fill();
+            // Puerto de salida (parpadea cuando está cerca de generar)
+            let portColor = (this.spawnTimer > 4700) ? "#ff00ff" : "#222";
+            ctx.fillStyle = portColor;
+            ctx.beginPath();
+            ctx.arc(this.x + 30, this.y + 30, 15, 0, Math.PI*2);
+            ctx.fill();
+        }
 
         // Barra de vida integrada
         ctx.fillStyle = "red";
@@ -2689,6 +2957,10 @@ class Projectile {
         // Fuera de pantalla → eliminar
         if (this.x < -50 || this.x > canvas.width + 50 || 
             this.y < -50 || this.y > canvas.height + 50) {
+            if (this.type === "foam_bomb" || this.type === "ice_bomb") {
+                const puddleType = this.type === "foam_bomb" ? "foam" : "ice";
+                puddles.push(new Puddle(this.x, this.y, puddleType));
+            }
             this.isDead = true;
             return;
         }
@@ -2720,6 +2992,7 @@ class Projectile {
                         const puddleType = this.type === "foam_bomb" ? "foam" : "ice";
                         puddles.push(new Puddle(t.x, t.y, puddleType));
                         t.takeDamage(this.dmg);
+                        this.hitTargets.add(t); // Asegurar que el objetivo se marque como impactado
                     }
                     else {
                         t.takeDamage(this.dmg, this.type);
@@ -2800,14 +3073,18 @@ class Puddle {
     update() {
         this.timer--;
         // Daño por segundo (5 daño / 60 frames = 0.0833 por frame)
-        if (this.type === 'foam') {
-            enemies.forEach(e => {
-                // Si pisa el charco (misma fila y coordenadas cercanas)
-                if (e.row === Math.floor(this.y/80) && Math.abs((e.x + 30) - (this.x + 40)) < 40) {
+        enemies.forEach(e => {
+            // Si pisa el charco (misma fila y coordenadas cercanas)
+            if (e.row === Math.floor(this.y/80) && Math.abs((e.x + 30) - (this.x + 40)) < 40) {
+                if (this.type === 'foam') {
                     e.takeDamage(0.0833); 
+                } else if (this.type === 'ice') {
+                    // El hielo ralentiza (50%) y hace el doble de daño que la espuma (0.1666)
+                    e.speedMultiplier = Math.min(e.speedMultiplier, 0.5);
+                    e.takeDamage(0.1666);
                 }
-            });
-        }
+            }
+        });
     }
 
     draw() {
@@ -2922,12 +3199,24 @@ function handleInput(clientX, clientY) {
             if (gameState.level === 52 && clickedHero.name === "Lypia" && clickedHero.col === 0) return;
             
             let refundMult = 0;
-            if (gameState.trashUpgrade2) refundMult = 0.50;
-            else if (gameState.trashUpgrade) refundMult = 0.25;
+            if (gameState.trashUpgrade) refundMult += 0.25;
+            if (gameState.trashUpgrade2) refundMult += 0.25;
+            if (gameState.trashBonusActive) refundMult += 0.25;
             let refund = Math.floor(clickedHero.stats.cost * refundMult);
-            gameState.rayos += refund;
-            createPopup(clickedHero.realX, clickedHero.realY, `+${refund}♻`);
-            heroDies(clickedHero, true);
+            
+            // Si tiene un héroe encima, primero quitamos el de arriba
+            if (clickedHero.carriedHero) {
+                let topHero = clickedHero.carriedHero;
+                let topRefund = Math.floor(topHero.stats.cost * refundMult);
+                gameState.rayos += topRefund;
+                createPopup(clickedHero.realX, clickedHero.realY - 20, `+${topRefund}♻`);
+                clickedHero.carriedHero = null;
+            } else {
+                // Si no tiene a nadie encima, borramos al héroe base (Knap o normal)
+                gameState.rayos += refund;
+                createPopup(clickedHero.realX, clickedHero.realY, `+${refund}♻`);
+                heroDies(clickedHero, true);
+            }
         }
     } 
     // 2. INTERACCIÓN CON HÉROE EXISTENTE (Habilidades / Knap)
@@ -2962,10 +3251,40 @@ function handleInput(clientX, clientY) {
                  clickedHero.carriedHero = new Hero(col, row, gameState.selectedHero);
                  gameState.rayos -= hStats.cost;
                  gameState.raysSpent += hStats.cost;
-                 
                  const reloadSecs = HEROES_INFO[gameState.selectedHero].reload || 5;
                  gameState.heroCurrentReloads[gameState.selectedHero] = now + (reloadSecs * 1000);
                  updateUI();
+             }
+        }
+        // NUEVA LÓGICA: Colocar Knap DEBAJO de un héroe existente
+        else if (clickedHero && clickedHero.name !== "Knap" && !clickedHero.isCatapult && gameState.selectedHero === "Knap") {
+             const now = Date.now();
+             const cdEnd = gameState.heroCurrentReloads["Knap"] || 0;
+             if (now < cdEnd) {
+                 createPopup(col*80, row*80, "¡Recargando!", "gray");
+                 return;
+             }
+             
+             let lvl = gameState.inventory["Knap"].level;
+             let hStats = getHeroStats("Knap", lvl);
+             
+             if (gameState.rayos >= hStats.cost) {
+                 // 1. Crear el nuevo Knap
+                 let newKnap = new Hero(col, row, "Knap");
+                 // 2. Mover el héroe actual a ser "carriedHero" de Knap
+                 newKnap.carriedHero = clickedHero;
+                 // 3. Reemplazar el héroe en la lista global
+                 let idx = heroes.indexOf(clickedHero);
+                 if (idx !== -1) {
+                     heroes[idx] = newKnap;
+                 }
+                 
+                 gameState.rayos -= hStats.cost;
+                 gameState.raysSpent += hStats.cost;
+                 const reloadSecs = HEROES_INFO["Knap"].reload || 5;
+                 gameState.heroCurrentReloads["Knap"] = now + (reloadSecs * 1000);
+                 updateUI();
+                 createPopup(col*80, row*80, "¡KNAP DEBAJO!", "pink");
              }
         }
     }
@@ -3216,19 +3535,28 @@ function gameLoop() {
             }
             updateUI();
         }
-        puddles = puddles.filter(p => p.timer > 0);
-        puddles.forEach(p => { p.update(); p.draw(); });
     }
+
+    // Actualizar charcos SIEMPRE, no solo cuando hay enemigos por spawnear
+    puddles = puddles.filter(p => p.timer > 0);
+    puddles.forEach(p => { p.update(); p.draw(); });
     
     if (!isBossLevel && gameState.enemiesToSpawn <= 0 && enemies.length === 0) {
         if (gameState.level === 13 && gameState.producedRaysCount < 50) endGame("Faltan Rayos (50)");
         else if (gameState.level === 21 && gameState.producedRaysCount < 150) endGame("Faltan Rayos (150)");
+        else if (gameState.level === 56 && gameState.producedRaysCount < 350) endGame("Faltan Rayos (350)");
         else if ((gameState.level === 32 || gameState.level === 49) && gameState.killObjFailed) endGame("Fallaste objetivo distancia");
         else winLevel();
     }
     if (isBossLevel && gameState.bossHP <= 0) winLevel();
     
-    heroes = heroes.filter(h => h.hp > 0);
+    heroes = heroes.filter(h => {
+        // Si el héroe base (como Knap) tiene un héroe encima, no muere aunque su HP sea 0
+        if (h.carriedHero && h.hp <= 0) {
+            h.hp = 1; // Mantenemos a Knap con 1 HP mínimo si tiene a alguien encima
+        }
+        return h.hp > 0;
+    });
     heroes.forEach(h => { h.update(); h.draw(); });
     enemies = enemies.filter(e => {
         if (e.hp <= 0) {
@@ -3281,8 +3609,13 @@ function drawBossLevel() {
     else if (gameState.level === 54 || gameState.level === 86) maxMHP = 1500;
     gameState.machines.forEach(m => {
         if (m.hp > 0) {
-            ctx.fillStyle = "#757575";
-            ctx.fillRect(7*80+10, m.row*80+10, 60, 60);
+            const mImg = heroSprites["MaquinaAgrandadora"];
+            if (mImg && mImg.complete) {
+                ctx.drawImage(mImg, 7*80+5, m.row*80+5, 70, 70);
+            } else {
+                ctx.fillStyle = "#757575";
+                ctx.fillRect(7*80+10, m.row*80+10, 60, 60);
+            }
             let hpPct = m.hp / maxMHP;
             ctx.fillStyle = hpPct > 0.5 ? "lime" : (hpPct > 0.25 ? "orange" : "red");
             ctx.fillRect(7*80+15, m.row*80+30, 50 * hpPct, 10);
@@ -3334,6 +3667,10 @@ function winLevel() {
     }
 
     saveProgress();
+    if (!gameState.noAds && Math.random() < 0.33) {
+        alert("¡Anuncio espontáneo! (Puedes quitarlos en la tienda)");
+    }
+
     document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
     document.getElementById('menu-screen').style.display = 'block';
     document.getElementById('overlay').style.display = 'none';
@@ -3377,7 +3714,7 @@ function updateUI() {
         objDisplay.innerText = `Prod: ${gameState.producedRaysCount}/150`;
     } else if (gameState.level === 56) {
         objDisplay.style.display = "block";
-        objDisplay.innerText = `Prod: ${gameState.producedRaysCount}/750`;
+        objDisplay.innerText = `Prod: ${gameState.producedRaysCount}/350`;
     } else if ([17, 27, 31, 34, 39].includes(gameState.level)) {
         let max = 5;
         if(gameState.level === 27) max = 10; if([34, 39, 78].includes(gameState.level)) max = 15;
@@ -3417,6 +3754,56 @@ function retryLevel() {
     }
 }
 
+function procesarPagoBasurero() {
+    // Simulación de pasarela de pago
+    let confirmar = confirm("¿Deseas simular el micropago de $50.00 MXN para activar el +25% de reembolso en el basurero?");
+    
+    if (confirmar) {
+        // 1. Activamos el beneficio de pago
+        gameState.trashBonusActive = true;
+        gameState.noAds = true;
+        
+        // 2. Guardamos inmediatamente el progreso para que no se pierda
+        if (typeof saveProgress === "function") {
+            saveProgress();
+        }
+        
+        // 3. Avisamos al jugador
+        alert("¡Compra realizada con éxito! Ahora recibirás un 25% de rayos vitalizadores adicionales al quitar héroes.");
+        
+        // 4. Recargamos la tienda para que el botón aparezca como "ADQUIRIDO"
+        if (typeof renderUpgradeList === "function") {
+            renderUpgradeList(); 
+        } else if (typeof openUpgrades === "function") {
+            openUpgrades();
+        }
+    }
+}
+
+function procesarPagoMazo7() {
+    if (gameState.heroBonusActive) {
+        alert("Ya has adquirido esta expansión premium.");
+        return;
+    }
+
+    if (confirm("¿Deseas simular la compra de 'Ranura Adicional para el Mazo' por $50 MXN?")) {
+        // 1. Activamos la bandera lógica en el estado global
+        gameState.heroBonusActive = true;
+        gameState.noAds = true;
+        
+        // 2. Guardamos progreso inmediatamente usando la función nativa del juego
+        if (typeof saveProgress === "function") {
+            saveProgress();
+        }
+        
+        // 3. Avisamos al jugador
+        alert("¡Compra realizada con éxito! Ahora podrás seleccionar hasta 7 héroes en tu equipo estratégico.");
+        
+        // 4. Recargamos la interfaz para actualizar el botón de la tienda
+        renderUpgradeList();
+    }
+}
+
 setInterval(() => {
     if(!gameState.gameOver && document.getElementById('gameCanvas').offsetParent !== null){
         gameState.timerRayo--;
@@ -3430,7 +3817,21 @@ setInterval(() => {
 
 loadProgress();
 renderLevelGrid();
+document.addEventListener("DOMContentLoaded", () => {
+// Esto busca todos tus botones y les añade la capacidad de respuesta táctil
+    const interactiveElements = document.querySelectorAll('.btn, .lvl-btn, .hero-card');
+    interactiveElements.forEach(btn => {
+        btn.addEventListener('touchstart', (e) => {
+            e.preventDefault(); 
+            btn.click();
+        }, { passive: false });
+    });
+});
 
+// Añade también este bloque al final del script para el giro de pantalla
+window.addEventListener("orientationchange", () => {
+    setTimeout(resizeGame, 300);
+});
 </script>
 </body>
 </html>
